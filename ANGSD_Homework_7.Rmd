@@ -1,0 +1,58 @@
+---
+title: "Gaudin_HW_7"
+author: "Paul Gaudin"
+date: "2/25/2019"
+output: html_document
+---
+
+#### Exercise 1
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+To enable the use of the featuresCount function, I first had to load the subread library, which I found and loaded using: 
+```
+spack find | egrep -i subread
+
+spack load subread@1.6.2
+```
+
+Then, after getting links for the aligned bam files from class, I created two functions, one that created a featureCount file and summary file for the SNF2 samples, and one for the WT samples. Additionally, to look at exon counts in these files, I utilized the "-O" option, which allows for the reads to be counted according to meta-features, or the aggregation of a set of features (in this case a gene). Also, I used option "--ignoreDup" so reads that were marked as duplicates (that could skew RNA-seq data) were not counted. 
+
+```
+$ featureCounts --ignoreDup ~frd2007/ANGSD_2019/alignment/SNF2_1_Aligned.sortedByCoord.out.bam ~frd2007/ANGSD_2019/alignment/SNF2_2_Aligned.sortedByCoord.out.bam ~frd2007/ANGSD_2019/alignment/SNF2_3_Aligned.sortedByCoord.out.bam ~frd2007/ANGSD_2019/alignment/SNF2_4_Aligned.sortedByCoord.out.bam ~frd2007/ANGSD_2019/alignment/SNF2_5_Aligned.sortedByCoord.out.bam -a homework_week_5/sacCer3.sgd.gtf -O -o SC_featureCounts/SNF2_PR_featurecounts.txt 
+
+$ featureCounts --ignoreDup ~frd2007/ANGSD_2019/alignment/WT_1_Aligned.sortedByCoord.out.bam ~frd2007/ANGSD_2019/alignment/WT_2_Aligned.sortedByCoord.out.bam ~frd2007/ANGSD_2019/alignment/WT_3_Aligned.sortedByCoord.out.bam ~frd2007/ANGSD_2019/alignment/WT_4_Aligned.sortedByCoord.out.bam ~frd2007/ANGSD_2019/alignment/WT_5_Aligned.sortedByCoord.out.bam -a homework_week_5/sacCer3.sgd.gtf -O -o SC_featureCounts/WT_PR_featurecounts.txt 
+
+```
+
+
+
+
+#### Exercise 2
+
+```{r}
+library(ggplot2)
+
+# input and format data... need to figure out how to do this directly from summary file, not manually
+samples <-rep(c("WT_1","WT_2","WT_3","WT_4","WT_5","SNF2_1","SNF2_2","SNF2_3","SNF2_4","SNF2_5"), 2)
+Assigned <-c(5780298,7686400,6288176,10154472,7780598,10104790,8553341,8643836,10545909,6817210)
+Unassigned_No_Features <-c(232966,518151,449802,593770,492354,747388,458993,493370,750124,433271)
+values <-c(Assigned, Unassigned_No_Features)
+type <-c(rep("Assigned", 10), rep("Unassigned_No_Features", 10))
+mydata <-data.frame(samples, values)
+
+#create ggplot and add settings for bar graph
+p <-ggplot(mydata, aes(samples, values))
+p + geom_bar(stat = "identity", aes(fill = type), position = "dodge") + xlab("Sample Name") + ylab("Exon Count") + ggtitle("Exon Count for Wildtype and Mutant SNF2 SacCer3 Samples") + theme_bw() + coord_flip()
+```
+
+
+#### Exercise 3
+
+Two observations that I noticed by observing the assigned and unassigned exons from both the WT and SNF2 samples included: 
+
+1. That there does not immdiately appear to be a significant difference in total assigned or unassigned exon count between WT and SNF2 samples. 
+  
+2. That while there is some variation between assigned and unassigned ratios between samples, the ratio of assigned exons is consistently many fold higher than unassigned exons across all of the samples. 
